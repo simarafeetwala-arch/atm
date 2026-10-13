@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Apex Bank & ATM Operations Portal | Supabase Live</title>
+  <meta name="description" content="Next-generation banking and live ATM operations portal backed by Supabase database." />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&family=Libre+Barcode+39&display=swap" rel="stylesheet" />
+
+  <!-- App Stylesheet -->
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- ==================== HEADER ==================== -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand" id="brandLogo">
+        <div class="brand-icon">🏧</div>
+        <div class="brand-text">
+          <h1>APEX DIGITAL BANK</h1>
+          <p>ATM &amp; Live Core Banking System</p>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="nav-tabs" role="tablist">
+        <button class="tab-btn active" data-tab="atm-view" id="navAtmBtn">
+          <span>🏧</span> ATM Terminal
+        </button>
+        <button class="tab-btn" data-tab="users-view" id="navUsersBtn">
+          <span>👥</span> User Accounts
+        </button>
+        <button class="tab-btn" data-tab="transactions-view" id="navTxBtn">
+          <span>📑</span> Transaction Ledger
+        </button>
+        <button class="tab-btn" data-tab="teller-view" id="navTellerBtn">
+          <span>⚡</span> Quick Teller
+        </button>
+      </nav>
+
+      <!-- Connection Status & Tools -->
+      <div class="header-status">
+        <div class="supabase-badge" id="supabaseStatusBadge" title="Supabase DB Status">
+          <span class="status-pulse"></span>
+          <span id="supabaseStatusText">Connected</span>
+          <span id="pingLatency" style="opacity: 0.7; font-size: 0.75rem;">(24ms)</span>
+        </div>
+        <button class="sound-toggle-btn" id="soundToggleBtn" title="Toggle ATM Audio Feedback">
+          <span id="soundIcon">🔊</span>
+        </button>
+        <button class="refresh-btn" id="refreshAllBtn" title="Synchronize Supabase Data">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <polyline points="1 20 1 14 7 14"></polyline>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== MAIN CONTENT ==================== -->
+  <main class="main-content">
+
+    <!-- KPI STATS OVERVIEW -->
+    <section class="stats-grid" id="statsGrid">
+      <div class="stat-card" style="--stat-color: var(--accent-cyan);">
+        <div class="stat-icon">👥</div>
+        <div class="stat-details">
+          <span class="stat-label">Active Users</span>
+          <span class="stat-value" id="statUsersCount">0</span>
+        </div>
+      </div>
+
+      <div class="stat-card" style="--stat-color: var(--accent-emerald);">
+        <div class="stat-icon">📥</div>
+        <div class="stat-details">
+          <span class="stat-label">Total Deposits</span>
+          <span class="stat-value" id="statTotalDeposits">$0</span>
+        </div>
+      </div>
+
+      <div class="stat-card" style="--stat-color: var(--accent-rose);">
+        <div class="stat-icon">📤</div>
+        <div class="stat-details">
+          <span class="stat-label">Total Withdrawals</span>
+          <span class="stat-value" id="statTotalWithdrawals">$0</span>
+        </div>
+      </div>
+
+      <div class="stat-card" style="--stat-color: var(--accent-violet);">
+        <div class="stat-icon">🏦</div>
+        <div class="stat-details">
+          <span class="stat-label">Net Bank Balance</span>
+          <span class="stat-value" id="statNetBalance">$0</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 1: ATM TERMINAL SIMULATOR ==================== -->
+    <section class="view-section active" id="atm-view">
+      <div class="atm-workspace">
+        
+        <!-- PHYSICAL ATM HARDWARE CHASSIS -->
+        <div class="atm-chassis">
+          
+          <!-- ATM Header Banner -->
+          <div class="atm-header-banner">
+            <div class="atm-bank-sign">
+              <span class="logo-pill">24/7 LIVE</span>
+              <h2>APEX ATM TERMINAL #01</h2>
+            </div>
+            <div class="atm-camera-module">
+              <span class="camera-lens"></span>
+              <span class="camera-text">REC • SECURE</span>
+            </div>
+          </div>
+
+          <!-- SCREEN ASSEMBLY WITH LATERAL FUNCTION KEYS -->
+          <div class="screen-assembly">
+            <div class="function-keys left-keys">
+              <button class="f-key" id="fKey1" data-key="F1">F1</button>
+              <button class="f-key" id="fKey2" data-key="F2">F2</button>
+              <button class="f-key" id="fKey3" data-key="F3">F3</button>
+            </div>
+
+            <!-- ATM SCREEN BEZEL -->
+            <div class="atm-screen-bezel">
+              <div class="atm-screen" id="atmDisplayScreen">
+                
+                <!-- Screen Header Info Bar -->
+                <div class="screen-header-bar">
+                  <span id="screenLiveClock">12:00:00</span>
+                  <span id="screenSessionUser">NO CARD INSERTED</span>
+                  <span>SSL 256-BIT</span>
+                </div>
+
+                <!-- Screen Body Container -->
+                <div class="screen-body">
+
+                  <!-- 1. WELCOME SCREEN STATE -->
+                  <div class="screen-state active" id="atmStateWelcome">
+                    <div class="welcome-view">
+                      <div class="atm-shield">💳</div>
+                      <h3>INSERT CARD OR SELECT USER</h3>
+                      <p>Please select an account below or click a customer card in the side panel to begin transaction.</p>
+                      
+                      <div class="user-selector-prompt">
+                        <select class="atm-select" id="atmUserSelect">
+                          <option value="">-- Choose Account --</option>
+                        </select>
+                        <button class="atm-action-btn-screen" id="atmInsertCardBtn">
+                          INSERT CARD &amp; ENTER PIN
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 2. MAIN OPERATIONS MENU -->
+                  <div class="screen-state" id="atmStateMenu">
+                    <div class="user-active-card-bar">
+                      <div>
+                        <strong id="menuUserName">Customer Name</strong>
+                        <span id="menuUserAcc" style="opacity: 0.8; margin-left: 0.5rem; font-family: var(--font-mono);">ACC: ****</span>
+                      </div>
+                      <div style="color: var(--accent-emerald);">
+                        BAL: <span id="menuUserBalance" style="font-family: var(--font-mono); font-weight: 700;">$0</span>
+                      </div>
+                    </div>
+
+                    <div class="menu-grid">
+                      <button class="menu-option-btn" id="menuOptFastCash">
+                        <span>[F1] ⚡ Fast Cash ($100)</span>
+                        <span>➔</span>
+                      </button>
+                      <button class="menu-option-btn" id="menuOptDeposit">
+                        <span>[F4] 📥 Cash Deposit</span>
+                        <span>➔</span>
+                      </button>
+                      <button class="menu-option-btn" id="menuOptWithdraw">
+                        <span>[F2] 📤 Custom Withdraw</span>
+                        <span>➔</span>
+                      </button>
+                      <button class="menu-option-btn" id="menuOptTransfer">
+                        <span>[F5] 🔄 Account Transfer</span>
+                        <span>➔</span>
+                      </button>
+                      <button class="menu-option-btn" id="menuOptBalance">
+                        <span>[F3] 📊 Balance Inquiry</span>
+                        <span>➔</span>
+                      </button>
+                      <button class="menu-option-btn" id="menuOptEject">
+                        <span>[F6] ⏏️ Eject Card / Exit</span>
+                        <span>➔</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- 3. DEPOSIT FORM -->
+                  <div class="screen-state" id="atmStateDeposit">
+                    <div class="screen-form-view">
+                      <h4>📥 CASH DEPOSIT TO ACCOUNT</h4>
+                      <p style="font-size: 0.85rem; color: #bae6fd;">Enter the cash amount you wish to insert into the deposit slot.</p>
+                      
+                      <div class="quick-amount-tags">
+                        <button class="quick-chip" data-amt="50">+$50</button>
+                        <button class="quick-chip" data-amt="100">+$100</button>
+                        <button class="quick-chip" data-amt="200">+$200</button>
+                        <button class="quick-chip" data-amt="500">+$500</button>
+                        <button class="quick-chip" data-amt="1000">+$1000</button>
+                      </div>
+
+                      <div class="screen-input-group">
+                        <label for="atmDepositAmount">DEPOSIT AMOUNT ($):</label>
+                        <input type="number" id="atmDepositAmount" class="screen-input" placeholder="0" min="1" step="1" />
+                      </div>
+
+                      <div class="screen-input-group">
+                        <label for="atmDepositLocation">LOCATION / TERMINAL NOTE:</label>
+                        <input type="text" id="atmDepositLocation" class="screen-input" style="font-size: 0.95rem;" value="Apex ATM #01 (Main Mall)" />
+                      </div>
+
+                      <div class="screen-actions-row">
+                        <button class="atm-action-btn-screen" id="atmSubmitDepositBtn" style="flex: 2; background: var(--accent-emerald);">CONFIRM DEPOSIT</button>
+                        <button class="atm-action-btn-screen" id="atmCancelDepositBtn" style="flex: 1; background: #475569; color: #fff;">BACK</button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 4. WITHDRAWAL FORM -->
+                  <div class="screen-state" id="atmStateWithdraw">
+                    <div class="screen-form-view">
+                      <h4>📤 CASH WITHDRAWAL</h4>
+                      <p style="font-size: 0.85rem; color: #bae6fd;">
+                        Available Balance: <strong id="withdrawAvailBal" style="color: var(--accent-emerald); font-family: var(--font-mono);">$0</strong>
+                      </p>
+
+                      <div class="quick-amount-tags">
+                        <button class="quick-chip" data-amt="20">$20</button>
+                        <button class="quick-chip" data-amt="50">$50</button>
+                        <button class="quick-chip" data-amt="100">$100</button>
+                        <button class="quick-chip" data-amt="200">$200</button>
+                        <button class="quick-chip" data-amt="500">$500</button>
+                      </div>
+
+                      <div class="screen-input-group">
+                        <label for="atmWithdrawAmount">WITHDRAW AMOUNT ($):</label>
+                        <input type="number" id="atmWithdrawAmount" class="screen-input" placeholder="0" min="1" step="1" />
+                      </div>
+
+                      <div class="screen-input-group">
+                        <label for="atmWithdrawLocation">LOCATION / TERMINAL NOTE:</label>
+                        <input type="text" id="atmWithdrawLocation" class="screen-input" style="font-size: 0.95rem;" value="Apex ATM #01 (Main Mall)" />
+                      </div>
+
+                      <div class="screen-actions-row">
+                        <button class="atm-action-btn-screen" id="atmSubmitWithdrawBtn" style="flex: 2; background: var(--accent-rose); color: #fff;">DISPENSE CASH</button>
+                        <button class="atm-action-btn-screen" id="atmCancelWithdrawBtn" style="flex: 1; background: #475569; color: #fff;">BACK</button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 5. TRANSFER FORM -->
+                  <div class="screen-state" id="atmStateTransfer">
+                    <div class="screen-form-view">
+                      <h4>🔄 INTER-ACCOUNT WIRE TRANSFER</h4>
+                      
+                      <div class="screen-input-group">
+                        <label for="atmTransferRecipientSelect">SELECT RECIPIENT ACCOUNT:</label>
+                        <select id="atmTransferRecipientSelect" class="atm-select">
+                          <option value="">-- Choose Beneficiary --</option>
+                        </select>
+                      </div>
+
+                      <div class="screen-input-group">
+                        <label for="atmTransferAmount">TRANSFER AMOUNT ($):</label>
+                        <input type="number" id="atmTransferAmount" class="screen-input" placeholder="0" min="1" step="1" />
+                      </div>
+
+                      <div class="screen-actions-row">
+                        <button class="atm-action-btn-screen" id="atmSubmitTransferBtn" style="flex: 2; background: var(--accent-cyan); color: #041017;">EXECUTE WIRE TRANSFER</button>
+                        <button class="atm-action-btn-screen" id="atmCancelTransferBtn" style="flex: 1; background: #475569; color: #fff;">BACK</button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 6. BALANCE INQUIRY & STATEMENT RECEIPT -->
+                  <div class="screen-state" id="atmStateBalance">
+                    <div class="screen-form-view" style="text-align: center; align-items: center;">
+                      <h4>📊 OFFICIAL BALANCE INQUIRY</h4>
+                      <p style="color: #7dd3fc; font-size: 0.85rem;">Account: <span id="inquiryAccNum" style="font-family: var(--font-mono); font-weight: 700;">1234</span></p>
+
+                      <div style="background: rgba(6, 182, 212, 0.1); border: 2px solid var(--accent-cyan); border-radius: var(--radius-md); padding: 1.5rem 2.5rem; margin: 1rem 0;">
+                        <span style="font-size: 0.8rem; color: #7dd3fc; text-transform: uppercase;">Current Available Funds</span>
+                        <div id="inquiryBalanceDisplay" style="font-size: 2.5rem; font-weight: 800; font-family: var(--font-mono); color: var(--accent-emerald); margin-top: 0.25rem;">$0</div>
+                      </div>
+
+                      <div class="screen-actions-row" style="width: 100%; max-width: 320px;">
+                        <button class="atm-action-btn-screen" id="atmPrintReceiptBtn" style="flex: 1; background: var(--accent-cyan); color: #000;">PRINT SLIP</button>
+                        <button class="atm-action-btn-screen" id="atmBackToMenuBtn" style="flex: 1; background: #475569; color: #fff;">MENU</button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 7. PROCESSING / SUCCESS / DISPENSE -->
+                  <div class="screen-state" id="atmStateProcessing">
+                    <div class="welcome-view">
+                      <div class="atm-shield" id="processingIcon" style="font-size: 3rem;">⏳</div>
+                      <h3 id="processingTitle">PROCESSING TRANSACTION...</h3>
+                      <p id="processingSubtitle">Communicating with Supabase core ledger. Please do not turn off power.</p>
+                      <button class="atm-action-btn-screen" id="processingDoneBtn" style="display: none; margin-top: 1rem;">CONTINUE TO MENU</button>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+
+            <div class="function-keys right-keys">
+              <button class="f-key" id="fKey4" data-key="F4">F4</button>
+              <button class="f-key" id="fKey5" data-key="F5">F5</button>
+              <button class="f-key" id="fKey6" data-key="F6">F6</button>
+            </div>
+          </div>
+
+          <!-- LOWER HARDWARE DECK: CARD SLOT, CASH DISPENSER & KEYPAD -->
+          <div class="atm-lower-deck">
+            
+            <!-- HARDWARE SLOTS -->
+            <div class="hardware-slots">
+              
+              <!-- Card Slot -->
+              <div class="slot-assembly">
+                <div class="slot-label-row">
+                  <span>EMV CHIP CARD READER</span>
+                  <span class="slot-led" id="cardSlotLed"></span>
+                </div>
+                <div class="card-slot-aperture" id="cardSlotAperture" title="Click to insert/eject card">
+                  <div class="card-mockup" id="cardMockup">
+                    <span id="cardMockupLabel">💳 APEX DEBIT</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Cash Dispenser -->
+              <div class="slot-assembly">
+                <div class="slot-label-row">
+                  <span>CASH DISPENSER &amp; DEPOSITOR</span>
+                  <span class="slot-led" id="cashSlotLed" style="background: var(--accent-cyan); box-shadow: 0 0 8px var(--accent-cyan);"></span>
+                </div>
+                <div class="cash-dispenser-aperture" id="cashDispenserAperture">
+                  <div class="dispensed-cash" id="dispensedCashBill" title="Click to take cash">
+                    💵 TAKE CASH: <span id="dispensedAmountTag">$0</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Receipt Slot -->
+              <div class="slot-assembly">
+                <div class="slot-label-row">
+                  <span>TRANSACTION RECEIPT PRINTER</span>
+                  <span style="font-size: 0.7rem; color: var(--text-muted);">THERMAL</span>
+                </div>
+                <button class="user-action-btn" id="quickPrintReceiptBtn" style="padding: 0.4rem; font-size: 0.75rem;">
+                  📜 View Latest Printed Receipt
+                </button>
+              </div>
+
+            </div>
+
+            <!-- TACTILE NUMERIC KEYPAD -->
+            <div class="keypad-assembly">
+              <div class="keypad-grid">
+                <button class="key-btn" data-val="1">1</button>
+                <button class="key-btn" data-val="2">2</button>
+                <button class="key-btn" data-val="3">3</button>
+                <button class="key-btn action-cancel" id="keypadCancelBtn">CANCEL</button>
+
+                <button class="key-btn" data-val="4">4</button>
+                <button class="key-btn" data-val="5">5</button>
+                <button class="key-btn" data-val="6">6</button>
+                <button class="key-btn action-clear" id="keypadClearBtn">CLEAR</button>
+
+                <button class="key-btn" data-val="7">7</button>
+                <button class="key-btn" data-val="8">8</button>
+                <button class="key-btn" data-val="9">9</button>
+                <button class="key-btn action-enter" id="keypadEnterBtn">ENTER</button>
+
+                <button class="key-btn" data-val="00">00</button>
+                <button class="key-btn" data-val="0">0</button>
+                <button class="key-btn" data-val=".">.</button>
+                <button class="key-btn" id="keypadBackBtn" style="font-size: 0.8rem;">⌫</button>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- SIDEBAR: QUICK USER ROSTER & ACCOUNT SELECTOR -->
+        <div class="atm-side-panel">
+          <div class="side-card">
+            <h3>
+              <span>Quick Account Selector</span>
+              <button class="btn-primary" id="sideNewUserBtn" style="padding: 0.35rem 0.75rem; font-size: 0.78rem;">
+                + New
+              </button>
+            </h3>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.85rem;">
+              Click any bank customer below to load their card directly into the ATM terminal.
+            </p>
+            <div class="quick-users-list" id="quickUsersList">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <div class="side-card">
+            <h3>ATM Machine Statistics</h3>
+            <div style="display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.85rem;">
+              <div style="display: flex; justify-content: space-between;">
+                <span style="color: var(--text-muted);">Terminal ID:</span>
+                <span style="font-family: var(--font-mono); font-weight: 600;">ATM-NY-0042</span>
+              </div>
+              <div style="display: flex; justify-content: space-between;">
+                <span style="color: var(--text-muted);">Database:</span>
+                <span style="font-family: var(--font-mono); color: var(--accent-emerald);">Supabase (Live)</span>
+              </div>
+              <div style="display: flex; justify-content: space-between;">
+                <span style="color: var(--text-muted);">Vault Status:</span>
+                <span style="font-family: var(--font-mono); color: var(--accent-cyan);">Armed &amp; Ready</span>
+              </div>
+              <div style="display: flex; justify-content: space-between;">
+                <span style="color: var(--text-muted);">Daily Operations:</span>
+                <span id="sideOpsCount" style="font-family: var(--font-mono); font-weight: 700;">0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==================== TAB 2: USER & ACCOUNT MANAGEMENT ==================== -->
+    <section class="view-section" id="users-view">
+      <div class="section-toolbar">
+        <div class="search-box">
+          <span>🔍</span>
+          <input type="text" id="userSearchInput" placeholder="Search user by name or account #..." />
+        </div>
+        <div style="display: flex; gap: 0.75rem;">
+          <button class="btn-primary" id="openNewUserModalBtn">
+            <span>+</span> Register New Customer
+          </button>
+        </div>
+      </div>
+
+      <!-- Users Grid -->
+      <div class="users-grid" id="usersGrid">
+        <!-- Dynamically rendered user cards -->
+      </div>
+    </section>
+
+    <!-- ==================== TAB 3: ATM TRANSACTIONS AUDIT LEDGER ==================== -->
+    <section class="view-section" id="transactions-view">
+      <div class="section-toolbar">
+        <div class="filters-bar">
+          <button class="filter-chip active" data-filter="all">All Operations</button>
+          <button class="filter-chip" data-filter="deposit">Deposits</button>
+          <button class="filter-chip" data-filter="withdraw">Withdrawals</button>
+          <button class="filter-chip" data-filter="transfer">Transfers</button>
+        </div>
+
+        <div style="display: flex; gap: 0.75rem; align-items: center;">
+          <div class="search-box" style="min-width: 220px;">
+            <span>🔍</span>
+            <input type="text" id="txSearchInput" placeholder="Filter transactions..." />
+          </div>
+          <button class="btn-secondary" id="exportTxCsvBtn" title="Export Ledger to CSV">
+            <span>📥</span> Export CSV
+          </button>
+        </div>
+      </div>
+
+      <!-- Ledger Table -->
+      <div class="table-card">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th>Log ID</th>
+              <th>Date &amp; Time</th>
+              <th>Customer</th>
+              <th>Account #</th>
+              <th>Operation Type</th>
+              <th>Amount</th>
+              <th>Location</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="txTableBody">
+            <!-- Dynamically populated transaction rows -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 4: QUICK TELLER OPERATIONS ==================== -->
+    <section class="view-section" id="teller-view">
+      <div style="max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 2rem;">
+        
+        <div class="side-card">
+          <h3>⚡ Teller Direct Bank Operations</h3>
+          <p style="color: var(--text-secondary); font-size: 0.88rem; margin-bottom: 1.5rem;">
+            Perform direct counter transactions without hardware keypad simulation. All transactions record immediately to Supabase `ATM` log.
+          </p>
+
+          <form id="tellerDirectForm" style="display: flex; flex-direction: column; gap: 1.25rem;">
+            <div class="form-group">
+              <label for="tellerUserSelect">Select Customer Account *</label>
+              <select id="tellerUserSelect" class="form-control" required>
+                <option value="">-- Choose Account --</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="tellerOpType">Operation Type *</label>
+              <select id="tellerOpType" class="form-control" required>
+                <option value="deposit">Deposit (Cash / Counter)</option>
+                <option value="withdraw">Withdrawal (Cash Payout)</option>
+                <option value="transfer">Account Transfer</option>
+              </select>
+            </div>
+
+            <div class="form-group" id="tellerRecipientGroup" style="display: none;">
+              <label for="tellerRecipientSelect">Beneficiary Account *</label>
+              <select id="tellerRecipientSelect" class="form-control">
+                <option value="">-- Choose Beneficiary --</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="tellerAmountInput">Amount ($) *</label>
+              <input type="number" id="tellerAmountInput" class="form-control" min="1" step="1" placeholder="Enter amount" required />
+            </div>
+
+            <div class="form-group">
+              <label for="tellerLocationInput">Branch / Terminal Location</label>
+              <input type="text" id="tellerLocationInput" class="form-control" value="Apex Central Branch - Counter #4" />
+            </div>
+
+            <button type="submit" class="btn-primary" style="justify-content: center; padding: 0.85rem; font-size: 1rem;">
+              🚀 Execute Transaction &amp; Sync with Supabase
+            </button>
+          </form>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==================== MODAL: CREATE USER ==================== -->
+  <div class="modal-backdrop" id="newUserModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>Create New Bank Account</h3>
+        <button class="modal-close-btn" id="closeNewUserModalBtn">&times;</button>
+      </div>
+      <form id="newUserForm">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="newUserName">Customer Full Name *</label>
+            <input type="text" id="newUserName" class="form-control" placeholder="e.g. Alex Morgan" required />
+          </div>
+
+          <div class="form-group">
+            <label for="newUserAccount">Unique Account Number *</label>
+            <div style="display: flex; gap: 0.5rem;">
+              <input type="number" id="newUserAccount" class="form-control" placeholder="e.g. 543210" required />
+              <button type="button" class="btn-secondary" id="generateAccNumBtn" style="white-space: nowrap;">
+                🎲 Auto Gen
+              </button>
+            </div>
+            <span style="font-size: 0.72rem; color: var(--text-muted);">Must be unique in database.</span>
+          </div>
+
+          <div class="form-group">
+            <label for="newUserLocation">Home Branch / City</label>
+            <input type="text" id="newUserLocation" class="form-control" placeholder="e.g. New York Downtown" value="Main Branch" />
+          </div>
+
+          <div class="form-group">
+            <label for="newUserInitialDeposit">Initial Opening Deposit ($)</label>
+            <input type="number" id="newUserInitialDeposit" class="form-control" min="0" step="1" value="100" />
+            <span style="font-size: 0.72rem; color: var(--text-muted);">Creates an initial deposit ATM log automatically.</span>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" id="cancelNewUserModalBtn">Cancel</button>
+          <button type="submit" class="btn-primary" id="saveNewUserBtn">Create Account</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: RECEIPT SLIP ==================== -->
+  <div class="modal-backdrop" id="receiptModal">
+    <div class="modal-box" style="background: transparent; border: none; box-shadow: none; max-width: 380px;">
+      
+      <div class="receipt-slip" id="printableReceiptArea">
+        <div class="receipt-header">
+          <h2>APEX DIGITAL BANK</h2>
+          <p style="font-size: 0.75rem; letter-spacing: 0.5px;">TERMINAL #01 • 24-HOUR ATM</p>
+          <p id="receiptDateTime" style="font-size: 0.72rem; color: #555;">2026-10-13 14:00:00</p>
+        </div>
+
+        <div class="receipt-row">
+          <span>TRANSACTION REF:</span>
+          <strong id="receiptTxId">#000000</strong>
+        </div>
+        <div class="receipt-row">
+          <span>CUSTOMER:</span>
+          <span id="receiptUserName">SIMARA</span>
+        </div>
+        <div class="receipt-row">
+          <span>ACCOUNT:</span>
+          <span id="receiptAccountMasked">**** 1234</span>
+        </div>
+        <div class="receipt-row">
+          <span>TERMINAL LOC:</span>
+          <span id="receiptLocation">MAIN MALL</span>
+        </div>
+
+        <div class="receipt-divider"></div>
+
+        <div class="receipt-row" style="font-size: 1rem;">
+          <strong id="receiptTxType">WITHDRAWAL</strong>
+          <strong id="receiptAmount">$0.00</strong>
+        </div>
+
+        <div class="receipt-divider"></div>
+
+        <div class="receipt-row" style="font-weight: 700;">
+          <span>NEW BALANCE:</span>
+          <span id="receiptBalance">$0.00</span>
+        </div>
+
+        <p style="text-align: center; font-size: 0.72rem; margin-top: 1rem; color: #666;">
+          THANK YOU FOR BANKING WITH APEX BANK.<br />
+          FOR INQUIRIES CALL 1-800-APEX-ATM
+        </p>
+
+        <div class="receipt-barcode">*APEX-ATM-TX*</div>
+      </div>
+
+      <div style="display: flex; gap: 0.75rem; margin-top: 1.25rem; justify-content: center;">
+        <button class="btn-primary" id="printReceiptDirectBtn">🖨️ Print Receipt</button>
+        <button class="btn-secondary" id="closeReceiptModalBtn" style="background: rgba(14, 21, 38, 0.9);">Close</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==================== TOAST NOTIFICATIONS ==================== -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Supabase API Layer -->
+  <script src="supabase-api.js"></script>
+  <!-- Application Main Controller -->
+  <script src="app.js"></script>
+</body>
+</html>
